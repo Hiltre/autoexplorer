@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="探索 1970—1982 年汽车的马力、重量与燃油经济性。支持年份筛选、产地比较和刷选联动。">
+  <meta name="theme-color" content="#123c3a">
+  <title>汽车观察室 · 动力与燃油经济性</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/d3.v7.min.js"></script>
+  <script defer src="data/cars.js"></script>
+  <script defer src="core.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#explorer">跳到交互图表</a>
+<header class="site-header"><div class="header-inner">
+  <a class="brand" href="index.html" aria-label="汽车观察室首页"><span class="brand-mark" aria-hidden="true">a<span>↗</span></span><span>汽车观察室<small>AUTO ATLAS</small></span></a>
+  <nav aria-label="主要导航"><a class="active" href="#explorer">数据探索</a><a href="#method">数据说明</a><a href="report.html">项目报告 <span aria-hidden="true">↗</span></a></nav>
+  <span class="header-note">交互式可视化 / 03</span>
+</div></header>
+<main class="page">
+  <section class="intro" aria-labelledby="page-title">
+    <div><p class="eyebrow"><span></span> 1970—1982 · 汽车性能档案</p><h1 id="page-title">动力更强，<br>就一定<span class="accent">更费油</span>吗？</h1><p class="intro-copy">从马力、重量和产地出发，探索历史汽车的燃油经济性。<br class="desktop-br">改变条件，比较群体，也看看那些不一样的车型。</p></div>
+    <div class="intro-aside"><div class="data-stamp"><span>UCI AUTO MPG</span><strong>392<span>条有效记录</span></strong><div><span>13 个车型年份</span><span>3 类产地</span></div></div><p>MPG = 每加仑燃油行驶的英里数<br><b>数值越高，燃油经济性越好。</b></p></div>
+  </section>
+
+  <section class="presets" aria-label="探索起点">
+    <span class="presets-label">从这里开始 <span aria-hidden="true">→</span></span>
+    <button data-preset="all" class="preset active" aria-pressed="true"><span>01</span><div><b>先看整体关系</b><small>全部年份与产地</small></div><span class="arrow" aria-hidden="true">↗</span></button>
+    <button data-preset="early" class="preset" aria-pressed="false"><span>02</span><div><b>回到七十年代初</b><small>1970—1974 年样本</small></div><span class="arrow" aria-hidden="true">↗</span></button>
+    <button data-preset="late" class="preset" aria-pressed="false"><span>03</span><div><b>看看后期的变化</b><small>1978—1982 年样本</small></div><span class="arrow" aria-hidden="true">↗</span></button>
+  </section>
+
+  <section id="explorer" class="explorer" aria-label="汽车数据交互探索">
+    <aside class="filters" aria-label="筛选条件">
+      <div class="section-heading"><h2>探索条件</h2><span class="step-tag">FILTERS</span></div>
+      <fieldset><legend>车型年份 <output id="year-label">1970—1982</output></legend>
+        <label class="range-label" for="year-min">起始年份 <output id="year-min-label">1970</output></label><input id="year-min" type="range" min="1970" max="1982" value="1970" aria-label="起始年份">
+        <label class="range-label" for="year-max">结束年份 <output id="year-max-label">1982</output></label><input id="year-max" type="range" min="1970" max="1982" value="1982" aria-label="结束年份">
+      </fieldset>
+      <fieldset><legend>产地类别 <button type="button" id="all-origins" class="text-button">全选</button></legend>
+        <label class="origin-option"><input type="checkbox" name="origin" value="USA" checked><span class="dot usa"></span>美国 <span class="origin-count" data-origin-count="USA">245</span></label>
+        <label class="origin-option"><input type="checkbox" name="origin" value="Europe" checked><span class="dot europe"></span>欧洲 <span class="origin-count" data-origin-count="Europe">68</span></label>
+        <label class="origin-option"><input type="checkbox" name="origin" value="Japan" checked><span class="dot japan"></span>日本 <span class="origin-count" data-origin-count="Japan">79</span></label>
+        <p class="micro">计数为当前年份和搜索条件下的记录数。</p>
+      </fieldset>
+      <div class="control-group"><label for="x-metric">横轴指标</label><select id="x-metric"><option value="horsepower">发动机马力（hp）</option><option value="weight">车辆重量（lb）</option></select></div>
+      <div class="control-group"><label for="search">查找车型</label><input id="search" type="search" placeholder="例如 toyota、ford" autocomplete="off"></div>
+      <button id="reset" class="reset-button"><span aria-hidden="true">↺</span> 重置所有条件</button>
+      <p class="filter-help">筛选与切换指标会清除框选。图表坐标范围保持固定，方便前后比较。</p>
+    </aside>
+
+    <div class="workspace">
+      <section class="plot-panel" aria-labelledby="scatter-title">
+        <div class="plot-header"><div><p class="overline">01 / 关系探索</p><h2 id="scatter-title">马力与燃油经济性</h2></div><div class="mode-switch" role="group" aria-label="图表操作模式"><button id="inspect-mode" aria-pressed="true" class="active">查看详情</button><button id="brush-mode" aria-pressed="false">框选数据</button></div></div>
+        <div class="plot-subhead"><span id="plot-instruction">悬浮查看记录，点击固定详情。</span><div class="legend"><span><i class="dot usa"></i>美国</span><span><i class="dot europe"></i>欧洲</span><span><i class="dot japan"></i>日本</span></div></div>
+        <div class="scatter-wrap" id="scatter-wrap"><svg id="scatter" role="img" aria-label="马力与燃油经济性散点图"></svg><div id="plot-empty" class="empty-state" hidden><strong>没有匹配的记录</strong><p>试试扩大年份范围、选择产地或清空搜索。</p><button id="empty-reset" class="text-button">重置条件 →</button></div></div>
+        <div class="selection-strip"><span id="selection-status" role="status" aria-live="polite">正在加载数据…</span><button id="clear-brush" class="text-button" disabled>清除框选</button></div>
+        <details class="exact-selection"><summary>精确选择数值范围（支持键盘操作）</summary><form id="bounds-form"><label><span id="bound-x-name">马力</span>最小值<input id="bound-x-min" type="number" step="any" placeholder="不限"></label><label>最大值<input id="bound-x-max" type="number" step="any" placeholder="不限"></label><label>MPG 最小值<input id="bound-y-min" type="number" step="any" placeholder="不限"></label><label>最大值<input id="bound-y-max" type="number" step="any" placeholder="不限"></label><button type="submit" class="small-button">应用范围</button></form><p id="bounds-error" class="error-text" role="alert"></p></details>
+      </section>
+      <section class="summary-row" aria-label="当前分析样本的统计"><div><span id="sample-label">当前样本</span><strong id="stat-n">—</strong><small id="stat-context">条记录</small></div><div><span>MPG 中位数</span><strong id="stat-mpg">—</strong><small>越高越省油</small></div><div><span id="stat-x-label">马力中位数</span><strong id="stat-x">—</strong><small id="stat-x-unit">hp</small></div><div><span>Pearson 相关系数</span><strong id="stat-r">—</strong><small>相关不等于因果</small></div></section>
+      <p id="live-insight" class="live-insight"></p>
+    </div>
+  </section>
+
+  <section class="linked-panels" aria-label="联动视图">
+    <article class="mini-panel"><div class="section-heading"><div><p class="overline">02 / 群体比较</p><h2>样本来自哪里？</h2></div><span class="panel-badge">联动</span></div><p class="panel-description">彩色为当前分析样本，浅灰为筛选后的全部样本。点击一行只看该产地。</p><div id="origin-chart" class="origin-chart"></div><p id="origin-caption" class="micro"></p></article>
+    <article class="mini-panel"><div class="section-heading"><div><p class="overline">03 / 年代变化</p><h2>燃油经济性如何变化？</h2></div><span class="panel-badge">联动</span></div><p class="panel-description"><span class="line-key base"></span>筛选样本的年度 MPG 中位数 <span class="line-key selected"></span>框选样本</p><svg id="trend" role="group" aria-label="每个车型年份的燃油经济性中位数"></svg><p class="micro">点击年份点聚焦该年；缺少记录的年份不连线。不同年份并非同一批车型。</p></article>
+  </section>
+
+  <section class="records-panel" aria-labelledby="records-heading">
+    <div class="records-header"><div><p class="overline">04 / 按需详情</p><h2 id="records-heading">回到每一条记录 <span id="table-count"></span></h2></div><div class="table-actions"><label class="sr-only" for="sort">记录排序</label><select id="sort"><option value="mpg-desc">MPG 从高到低</option><option value="mpg-asc">MPG 从低到高</option><option value="year-desc">年份从新到旧</option><option value="horsepower-desc">马力从高到低</option></select><button id="export" class="small-button">导出所选 CSV <span aria-hidden="true">↓</span></button></div></div>
+    <div id="detail" class="detail-card" hidden role="status"></div>
+    <div class="table-scroll"><table><caption class="sr-only">当前分析样本，选择车型名称可固定详情</caption><thead><tr><th scope="col">车型名称</th><th scope="col">年份</th><th scope="col">产地</th><th scope="col">马力 / hp</th><th scope="col">MPG</th><th scope="col">重量 / lb</th></tr></thead><tbody id="records"></tbody></table></div><div class="table-footer"><span id="table-status"></span><button id="show-more" class="text-button">再显示 10 条 ↓</button></div>
+  </section>
+
+  <section id="method" class="method"><div><p class="overline">关于这份数据</p><h2>有依据的观察，<br>也有清楚的边界。</h2></div><div class="method-copy"><p>数据来自 <a href="https://archive.ics.uci.edu/dataset/9/auto+mpg" target="_blank" rel="noopener noreferrer">UCI Auto MPG ↗</a>，覆盖 1970—1982 年的车型记录。原始文件共 398 条，其中 6 条缺失马力，统一排除后保留 392 条。年份表示车型年份，产地保留原数据的美国、欧洲、日本三类。</p><p>MPG 描述城市工况下的燃油经济性。本页面展示样本中的相关关系，不能据此推断马力变化造成油耗变化，也不能把这些历史样本当作当代市场的代表。各产地样本量不同，年度比较也会受到车型构成变化影响。</p><div class="source-links"><a href="data/auto-mpg.data" download>原始数据 ↓</a><a href="data/cars.json" download>清洗后数据 ↓</a><a href="data/provenance.json" download>处理记录 ↓</a><a href="report.html">阅读设计报告 ↗</a></div></div></section>
+</main>
+<footer><div><span>汽车观察室 <span class="footer-divider">/</span> AUTO ATLAS</span><span>UCI Auto MPG · D3.js · 交互式可视化</span></div></footer>
+<div id="tooltip" class="tooltip" hidden role="tooltip"></div>
+<noscript><p class="fatal">需要启用 JavaScript 才能使用筛选和图表。原始数据与报告可直接打开。</p></noscript>
+</body>
+</html>
